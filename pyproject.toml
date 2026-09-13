@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Verifiable accountability wrapper for MCP tool execution"
 readme = "README.md"
 requires-python = ">=3.10"
+dependencies = ["filelock>=3.12,<4"]
 license = { text = "MIT" }
 authors = [{ name = "JEP MCP Wrapper Contributors" }]
 classifiers = [

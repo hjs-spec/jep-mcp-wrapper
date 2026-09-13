@@ -60,6 +60,8 @@ class ReplayVerifier:
         lineage_by_call: dict[str, tuple[str, ...]] = {}
         for call_id, call_events in events_by_call.items():
             previous_state: ToolExecutionState | None = None
+            if call_events[0].execution_state not in {ToolExecutionState.REQUESTED, ToolExecutionState.DELEGATED}:
+                errors.append(f"call {call_id} missing initial request")
             expected_lineage = call_events[0].delegation_lineage
             for event in call_events:
                 if event.delegation_lineage != expected_lineage:
@@ -107,6 +109,8 @@ class ReplayVerifier:
             if parent is None:
                 errors.append(f"event {event.event_id} references missing parent_event_id")
                 continue
+            if parent.sequence >= event.sequence:
+                errors.append(f"event {event.event_id} parent must precede child")
             parent_lineage = parent.delegation_lineage
             lineage = event.delegation_lineage
             if lineage != parent_lineage and lineage[:-1] != parent_lineage:
