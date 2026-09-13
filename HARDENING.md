@@ -15,3 +15,7 @@ python -m pytest -q
 ## Compatibility and remaining limits
 
 A sidecar .lock file is created beside archives. Existing event hashes are retained. The archive still scans existing records on append; large-archive indexing and distributed storage are follow-up work. These are runtime envelopes, not signed v0.6 wire events.
+
+## Follow-up hardening
+
+Archive readers reject null records and coerced sequence values rather than silently normalizing signed/hash-covered input. Non-object records report ArchiveTamperError.

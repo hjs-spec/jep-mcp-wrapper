@@ -76,7 +76,7 @@ class AppendOnlyEventArchive:
                     continue
                 try:
                     events.append(JEPEvent.from_record(json.loads(line)))
-                except (KeyError, json.JSONDecodeError, ValueError) as exc:
+                except (KeyError, TypeError, json.JSONDecodeError, ValueError) as exc:
                     raise ArchiveTamperError(f"invalid archive record at line {line_number}") from exc
         return events
 
