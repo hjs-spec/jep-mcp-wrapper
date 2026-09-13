@@ -131,7 +131,7 @@ class JEPMCPWrapper:
                     call_id=call_id,
                     parent_event_id=running_event.event_id,
                 )
-            except Exception as exc:
+            except BaseException as exc:
                 end_event = self.tracer.record(
                     tool_name=tool_name,
                     state=ToolExecutionState.FAILED,
@@ -175,7 +175,7 @@ class JEPMCPWrapper:
                     call_id=call_id,
                     parent_event_id=running_event.event_id,
                 )
-            except Exception as exc:
+            except BaseException as exc:
                 end_event = self.tracer.record(
                     tool_name=tool_name,
                     state=ToolExecutionState.FAILED,

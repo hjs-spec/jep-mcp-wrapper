@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from threading import RLock
+from filelock import FileLock
 from typing import Iterable
 
 from .events import JEPEvent
@@ -18,12 +18,13 @@ class AppendOnlyEventArchive:
     """JSONL archive that only appends events and validates existing chains."""
 
     def __init__(self, path: str | Path):
-        self.path = Path(path)
+        self.path = Path(path).resolve()
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._lock = RLock()
+        self._lock = FileLock(str(self.path) + ".lock", timeout=30)
         self._last_hash: str | None = None
         self._next_sequence = 0
-        self._load_and_validate()
+        with self._lock:
+            self._load_and_validate()
 
     @property
     def last_hash(self) -> str | None:
@@ -32,6 +33,13 @@ class AppendOnlyEventArchive:
     @property
     def next_sequence(self) -> int:
         return self._next_sequence
+
+    def append_new(self, **fields) -> JEPEvent:
+        """Assign sequence/hash and append under one cross-process lock."""
+        with self._lock:
+            self._load_and_validate()
+            event = JEPEvent.create(sequence=self._next_sequence, prev_hash=self._last_hash, **fields)
+            return self.append(event)
 
     def append(self, event: JEPEvent) -> JEPEvent:
         """Append a single event after enforcing sequence and hash continuity."""
@@ -54,6 +62,10 @@ class AppendOnlyEventArchive:
     def read_events(self) -> list[JEPEvent]:
         """Read all events from the archive."""
 
+        with self._lock:
+            return self._read_events()
+
+    def _read_events(self) -> list[JEPEvent]:
         if not self.path.exists():
             return []
         events: list[JEPEvent] = []
@@ -64,7 +76,7 @@ class AppendOnlyEventArchive:
                     continue
                 try:
                     events.append(JEPEvent.from_record(json.loads(line)))
-                except (KeyError, json.JSONDecodeError, ValueError) as exc:
+                except (KeyError, TypeError, json.JSONDecodeError, ValueError) as exc:
                     raise ArchiveTamperError(f"invalid archive record at line {line_number}") from exc
         return events
 

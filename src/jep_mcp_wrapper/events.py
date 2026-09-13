@@ -131,14 +131,19 @@ class JEPEvent:
     def from_record(cls, record: Mapping[str, Any]) -> "JEPEvent":
         """Deserialize an event record from JSONL archive storage."""
 
+        if not isinstance(record, Mapping) or type(record.get("sequence")) is not int:
+            raise ValueError("invalid archive event type")
+        for field in ("event_id", "tool_name", "actor", "call_id"):
+            if not isinstance(record.get(field), str):
+                raise ValueError("invalid archive string field")
         return cls(
-            event_id=str(record["event_id"]),
+            event_id=record["event_id"],
             tool_name=str(record["tool_name"]),
             actor=str(record["actor"]),
             delegation_lineage=tuple(record.get("delegation_lineage", ())),
             authority_scope=dict(record.get("authority_scope", {})),
             execution_state=ToolExecutionState(record["execution_state"]),
-            sequence=int(record["sequence"]),
+            sequence=record["sequence"],
             prev_hash=record.get("prev_hash"),
             parent_event_id=record.get("parent_event_id"),
             call_id=str(record["call_id"]),
