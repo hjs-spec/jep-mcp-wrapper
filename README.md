@@ -1,13 +1,19 @@
 # jep-mcp-wrapper
 
-`jep-mcp-wrapper` adds verifiable accountability semantics to MCP tool execution without changing the MCP protocol. Existing tool callables are wrapped in a side-channel JEP runtime that emits deterministic, append-only events for each execution lifecycle step.
+`jep-mcp-wrapper` records MCP tool execution for inspection and replay without changing the MCP protocol. It wraps existing tool callables, tracks declared actors and delegation context, and writes lifecycle records to a local hash-linked JSONL archive.
+
+## Event format and verification scope
+
+This package emits **local runtime envelopes**, not signed [JEP-Core v0.6](https://github.com/hjs-spec/jep-v06) wire events. Its lifecycle fields and hash serialization belong to this adapter. It does not produce detached-JWS signatures or perform JEP-Core signature and key-trust validation; interoperable Core events require a separately specified mapping and signing implementation.
+
+`ReplayVerifier.replay().verified` reports the archive checks listed below: hashes, sequence, lifecycle, and recorded lineage. It does not authenticate the declared actor, establish that a delegation was authorized, or verify a tool result against the external world. Authority scope is recorded context.
 
 ## What it provides
 
 - `JEPMCPWrapper` wraps sync and async MCP tool callables.
 - `MCPExecutionTracer` writes lifecycle events (`requested`, `running`, `succeeded`, `failed`).
 - `ToolDelegationRuntime` tracks the active actor, delegation lineage, parent context, and authority scope across nested tool calls.
-- `ReplayVerifier` replays archived execution chains, verifies lineage, validates deterministic hashes, and detects archive tampering.
+- `ReplayVerifier` checks archived execution chains for inconsistent hashes, links, lifecycle transitions, and recorded lineage.
 - `AppendOnlyEventArchive` stores JSONL events as an append-only hash chain.
 
 The wrapper records:
@@ -63,7 +69,7 @@ search = wrapper.wrap_tool("search.query", search, authority_scope={"purpose": "
 search("accountability", fetch=fetch)
 ```
 
-## Replay and tamper detection
+## Replay and archive consistency
 
 ```python
 from jep_mcp_wrapper import ReplayVerifier
@@ -84,6 +90,8 @@ Replay verification checks:
 5. stable lineage for every tool call,
 6. parent/child lineage consistency when parent links are present.
 
+The writer appends records, but an unkeyed hash chain alone cannot rule out a complete rewrite or removal of a valid suffix. Detecting those changes requires an independently trusted checkpoint or other external evidence of the expected history.
+
 ## Examples
 
 - `examples/filesystem_tool.py` wraps a filesystem read tool.
@@ -94,3 +102,7 @@ Replay verification checks:
 - It does not modify MCP protocol schemas or wire semantics.
 - It does not implement an orchestration framework.
 - It does not decide whether a tool is authorized; it records the declared authority scope so execution can be audited and replayed.
+
+## Runtime and verification notes
+
+See [HARDENING.md](HARDENING.md) for concurrency, cancellation, archive validation, and compatibility boundaries.
