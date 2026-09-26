@@ -4,7 +4,7 @@
 
 ## Event format and verification scope
 
-This package emits **local runtime envelopes**, not signed [JEP-Core v0.6](https://github.com/hjs-spec/jep-v06) wire events. Its lifecycle fields and hash serialization belong to this adapter. It does not produce detached-JWS signatures or perform JEP-Core signature and key-trust validation; interoperable Core events require a separately specified mapping and signing implementation.
+This package emits **local runtime envelopes**, not signed [JEP Core 0.7](https://github.com/hjs-spec/jep-core) wire events. Its lifecycle fields and hash serialization belong to this adapter. It does not produce detached-JWS signatures or perform JEP-Core signature and key-trust validation; interoperable Core events require a separately specified mapping and signing implementation.
 
 `ReplayVerifier.replay().verified` reports the archive checks listed below: hashes, sequence, lifecycle, and recorded lineage. It does not authenticate the declared actor, establish that a delegation was authorized, or verify a tool result against the external world. Authority scope is recorded context.
 
