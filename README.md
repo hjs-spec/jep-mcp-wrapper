@@ -1,5 +1,14 @@
 # jep-mcp-wrapper
 
+> **Maintenance: retired experiment — 2026-09-26.** Active feature development
+> has ended. Source history, releases, examples and existing archive readers are
+> retained for reproduction. Package names and historical formats are unchanged.
+
+The unsigned MCP observation format, nested lineage and lifecycle replay remain available here. The Agent SDK's signed callable/MCP recording does not reproduce all of those local replay semantics.
+
+For new signed Core integrations, use the [maintained recording and report path](https://github.com/hjs-spec/jep-agent-sdk/blob/main/docs/INTEGRATIONS.md).
+See the [repository directory](https://github.com/hjs-spec/.github/blob/main/PROJECTS.md#retired-experiments) for maintenance status. No automatic archive migration is provided.
+
 `jep-mcp-wrapper` records MCP tool execution for inspection and replay without changing the MCP protocol. It wraps existing tool callables, tracks declared actors and delegation context, and writes lifecycle records to a local hash-linked JSONL archive.
 
 ## Event format and verification scope
